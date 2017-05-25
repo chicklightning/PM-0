@@ -148,72 +148,85 @@ int main(int argc, char * argv[])
 
 			//RET
 			case 0:
-				
+				sp = bp - 1;
+				pc = stack[sp + 4];
+				bp = stack[sp + 3];
 				break;
 			
 			// NEG
 			case 1:
-
+				stack[sp] = -stack[sp];
 				break;
 
 			// ADD
 			case 2:
-
+				sp--;
+				stack[sp] += stack[sp + 1];
 				break;
 
 			// SUB
 			case 3:
-			
+				sp--;
+				stack[sp] -= stack[sp + 1];
 				break;
 
 			// MUL
 			case 4:
-				
+				sp--;
+				stack[sp] *= stack[sp + 1];
 				break;
 
 			// DIV
 			case 5:
-
+				sp--;
+				stack[sp] /= stack[sp + 1];
 				break;
 
 			// ODD
 			case 6:
-
+				stack[sp] = stack[sp] % 2;
 				break;
 
 			// MOD
 			case 7:
-				
+				sp--;
+				stack[sp] %= stack[sp + 1];
 				break;
 
-			// EQL
+			// EQL, 0 is true, 1 is false
 			case 8:
-
+				sp--;
+				stack[sp] = (stack[sp] == stack[sp + 1]) ? 1 : 0;
 				break;
 
-			// NEQ
+			// NEQ, 0 is true, 1 is false
 			case 9:
-				
+				sp--;
+				stack[sp] = (stack[sp] != stack[sp + 1]) ? 1 : 0;
 				break;
 
 			// LSS
 			case 10:
-
+				sp--;
+				stack[sp] = (stack[sp] < stack[sp + 1]) ? 1 : 0;
 				break;
 
 			// LEQ
 			case 11:
-
+				sp--;
+				stack[sp] = (stack[sp] <= stack[sp + 1]) ? 1 : 0;
 				break;
 
 			// GTR
 			case 12:
-				
+				sp--;
+				stack[sp] = (stack[sp] > stack[sp + 1]) ? 1 : 0;
 				break;
 
 			// GEQ
 			case 13:
-
+				sp--;
+				stack[sp] = (stack[sp] >= stack[sp + 1]) ? 1 : 0;
 				break;
 
 			default:
