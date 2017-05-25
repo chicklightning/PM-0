@@ -41,8 +41,8 @@ typedef struct {
 } Instruction;
 
 // stack and code declarations
-int stack[MAX_STACK_HEIGHT] = { 0 };	// initializes all elements to 0
-Instruction code[MAX_CODE_LENGTH];
+int stack[MAX_STACK_HEIGHT + 1] = { 0 };	// initializes all elements to 0
+Instruction code[MAX_CODE_LENGTH + 1];
 
 
 // --------------------------- //
@@ -107,6 +107,7 @@ int main(int argc, char * argv[])
 	int bp = 1;		// base pointer
 	int pc = 0;		// program counter
 	Instruction ir;	// instruction register
+	int ARIcount = 0;
 
 
 	// while a halt instruction hasn't occurred, keep running
@@ -121,15 +122,185 @@ int main(int argc, char * argv[])
 		// increase pc by 1
 		pc++;
 
-		// check for halt
+		// check for halt (9 0 3)
 		if (ir.op == SIO && ir.l == 0 && ir.m == 3)
 		{
 			run = 1;
 			break;
 		}
 
+		// check if sp is trying to access past stack boundaries
+		if (sp > MAX_STACK_HEIGHT) {
+			printf("Stack pointer attempting to access past max stack height, stack pointer set to top of stack.");
+			sp = MAX_STACK_HEIGHT;
+		}
 
+		switch ((OPCode)ir.op) {
+		// op code 01 is LIT (literal)
+		case LIT:
+			sp++;
+			stack[sp] = ir.m;
+			break;
 
+		// op code 02 is OPR (arithmetic or logical operation)
+		case OPR:
+			switch (ir.m) {
+
+			//RET
+			case 0:
+				
+				break;
+			
+			// NEG
+			case 1:
+
+				break;
+
+			// ADD
+			case 2:
+
+				break;
+
+			// SUB
+			case 3:
+			
+				break;
+
+			// MUL
+			case 4:
+				
+				break;
+
+			// DIV
+			case 5:
+
+				break;
+
+			// ODD
+			case 6:
+
+				break;
+
+			// MOD
+			case 7:
+				
+				break;
+
+			// EQL
+			case 8:
+
+				break;
+
+			// NEQ
+			case 9:
+				
+				break;
+
+			// LSS
+			case 10:
+
+				break;
+
+			// LEQ
+			case 11:
+
+				break;
+
+			// GTR
+			case 12:
+				
+				break;
+
+			// GEQ
+			case 13:
+
+				break;
+
+			default:
+				break;
+			}
+			break;
+
+		// op code 03 is LOD (load)
+		case LOD:
+			sp++;
+			stack[sp] = stack[base(ir.l, bp) + ir.m];
+			break;
+
+		// op code 04 is STO (store)
+		case STO:
+			stack[base(ir.l, bp)] = stack[sp];
+			sp--;
+			break;
+
+		// op code 05 is CAL (call procedure)
+		case CAL:
+			stack[sp + 1] = 0;				// space to return value
+			stack[sp + 2] = base(ir.l, bp);	// static link (SL)
+			stack[sp + 3] = bp;				// dynamic link (DL)
+			stack[sp + 4] = pc;				// return address (RA)
+
+			bp = sp + 1;
+			pc = ir.m;
+
+			// find a way to delineate activation records
+			ARIcount++;
+			break;
+
+		// op code 06 is INC (allocating for incoming locals)
+		case INC:
+			sp += ir.m;
+			break;
+
+		// op code 07 is JMP (jump)
+		case JMP:
+			pc = ir.m;
+			break;
+
+		// op code 08 is JPC (jump if 0)
+		case JPC:
+			if (stack[sp] == 0) {
+				pc = ir.m;
+				sp--;
+			}
+			break;
+
+		// op code 09 is SIO (standard input/output and halt)
+		case SIO:
+			
+			// print top of stack to screen
+			if (ir.m == 1) {
+				printf("Stack at position %d: %d", sp, stack[sp]);
+				sp--;
+			}
+
+			// read input from user and put on stack
+			else if (ir.m == 2) {
+				int num, items;
+
+				items = scanf("%d", &num);
+
+				sp++;
+				stack[sp] = 0;
+
+				if (items == EOF) {
+					printf("Input failed, value of '0' input into stack.");
+				}
+				else if (items == 0) {
+					printf("No input, value of '0' input into stack.");
+				}
+				else if (!isdigit(num)) {
+					printf("Input was not a number, value of '0' input into stack.");
+				}
+				else {
+					stack[sp] = num;
+				}
+			}
+			break;
+
+		default:
+			break;
+		}
 
 	}
 
