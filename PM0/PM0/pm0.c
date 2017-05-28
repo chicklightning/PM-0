@@ -80,9 +80,10 @@ int main(int argc, char * argv[])
 	int codeCounter = 0;
 	while (!feof(readFrom)) {
 
-		// if codeCounter increases to MAX_CODE_LENGTH - 1, regardless of file length, HALT is inserted
+		// if codeCounter increases to MAX_CODE_LENGTH + 1, regardless of file length, HALT is inserted
 		// at the end of the code array and the file stops being read
-		if (codeCounter == MAX_CODE_LENGTH - 1) {
+		if (codeCounter == MAX_CODE_LENGTH + 1) {
+			codeCounter--;
 			perror("Code overflow, HALT instruction automatically inserted at end of code, and rest of code is discarded.");
 			code[(codeCounter)].op = 9;
 			code[(codeCounter)].l = 0;
@@ -126,7 +127,7 @@ int main(int argc, char * argv[])
 	// while a halt instruction hasn't occurred, keep running
 	int run = 0;
 	while (run == 0) {
-		
+
 		fprintf(writeTo, "%3d   %s  %3d  %3d    ", code[pc].line, opStrings[code[pc].op], code[pc].l, code[pc].m);
 
 		// fetch instruction
@@ -160,7 +161,7 @@ int main(int argc, char * argv[])
 				pc = stack[sp + 4];
 				bp = stack[sp + 3];
 				break;
-			
+
 			// NEG
 			case 1:
 				stack[sp] = -stack[sp];
@@ -288,7 +289,7 @@ int main(int argc, char * argv[])
 
 		// op code 09 is SIO (standard input/output and halt)
 		case SIO:
-			
+
 			// print top of stack to screen
 			if (ir.m == 1) {
 				printf("Stack at position %d: %d", sp, stack[sp]);
@@ -342,11 +343,11 @@ int main(int argc, char * argv[])
 			stop = 0;
 
 		for (i = 1; i <= stop; i++) {
-			
+
 			// if there's a pipe at that location, then an ARI starts there
 			if (ARIlist[i] == 1)
 				fprintf(writeTo, "| ");
-			
+
 			fprintf(writeTo, "%d ", stack[i]);
 		}
 
