@@ -38,11 +38,13 @@ typedef struct {
 	int op;		// op code
 	int l;		// lexicographical level
 	int m;		// modifier
+	int line;	// line number
 } Instruction;
 
 // stack and code declarations
 int stack[MAX_STACK_HEIGHT + 1] = { 0 };	// initializes all elements to 0
 Instruction code[MAX_CODE_LENGTH + 1];
+int ARIlist[MAX_STACK_HEIGHT + 1] = { -1 };	// keeps track of where ARIs start
 
 
 // --------------------------- //
@@ -62,22 +64,26 @@ int base(int l, int base);
 int main(int argc, char * argv[])
 {
 	// opening text file for instructions
-	FILE * file;
-	file = fopen("vminput.txt", "r");
+	FILE * readFrom;
+	readFrom = fopen("vminput.txt", "r");
+
+	// creating output file
+	FILE * writeTo;
+	writeTo = fopen("vmoutput.txt", "w+");
 
 	// if file doesn't exist, exit
-	if (!file) {
-		printf("Error opening file pmasm.txt.");
+	if (!readFrom) {
+		perror("Error opening file vminput.txt.");
 		return 0;
 	}
 
 	int codeCounter = 0;
-	while (!feof(file)) {
+	while (!feof(readFrom)) {
 
 		// if codeCounter increases to MAX_CODE_LENGTH - 1, regardless of file length, HALT is inserted
 		// at the end of the code array and the file stops being read
 		if (codeCounter == MAX_CODE_LENGTH - 1) {
-			printf("Code overflow, HALT instruction automatically inserted at end of code, and rest of code is discarded.");
+			perror("Code overflow, HALT instruction automatically inserted at end of code, and rest of code is discarded.");
 			code[(codeCounter)].op = 9;
 			code[(codeCounter)].l = 0;
 			code[(codeCounter)].m = 3;
@@ -85,21 +91,22 @@ int main(int argc, char * argv[])
 			break;
 		}
 
-		fscanf(file, "%d ", &code[codeCounter].op);
-		fscanf(file, "%d ", &code[codeCounter].l);
-		fscanf(file, "%d", &code[codeCounter].m);
+		fscanf(readFrom, "%d ", &code[codeCounter].op);
+		fscanf(readFrom, "%d ", &code[codeCounter].l);
+		fscanf(readFrom, "%d", &code[codeCounter].m);
+		code[(codeCounter)].line = codeCounter;
 
 		codeCounter++;
 	}
 
-	fclose(file);
+	fclose(readFrom);
 
-	printf("\nLine    OP    L    M\n");
+	fprintf(writeTo, "Line    OP    L    M\n");
 
 	// prints file contents and op code interpretation
 	int i;
 	for (i = 0; i < codeCounter; i++) {
-		printf("%4d    %s   %1d    %d\n", i, opStrings[code[i].op], code[i].l, code[i].m);
+		fprintf(writeTo, "%4d    %s   %1d    %d\n", i, opStrings[code[i].op], code[i].l, code[i].m);
 	}
 
 	// setup pointers
@@ -107,12 +114,20 @@ int main(int argc, char * argv[])
 	int bp = 1;		// base pointer
 	int pc = 0;		// program counter
 	Instruction ir;	// instruction register
-	int ARIcount = 0;
+
+	// print initial stuff and headers
+	fprintf(writeTo, "\n");
+	fprintf(writeTo, "\n");
+	fprintf(writeTo, "-- stack after each instruction --\n");
+	fprintf(writeTo, "                       %3s   %3s   %3s    stack\n", "pc", "bp", "sp");
+	fprintf(writeTo, "Initial values         %3d   %3d   %3d    \n", pc, bp, sp);
 
 
 	// while a halt instruction hasn't occurred, keep running
 	int run = 0;
 	while (run == 0) {
+		
+		fprintf(writeTo, "%3d   %s  %3d  %3d    ", code[pc].line, opStrings[code[pc].op], code[pc].l, code[pc].m);
 
 		// fetch instruction
 		ir.op	= code[pc].op;
@@ -122,16 +137,9 @@ int main(int argc, char * argv[])
 		// increase pc by 1
 		pc++;
 
-		// check for halt (9 0 3)
-		if (ir.op == SIO && ir.l == 0 && ir.m == 3)
-		{
-			run = 1;
-			break;
-		}
-
 		// check if sp is trying to access past stack boundaries
 		if (sp > MAX_STACK_HEIGHT) {
-			printf("Stack pointer attempting to access past max stack height, stack pointer set to top of stack.");
+			perror("Stack pointer attempting to access past max stack height, stack pointer set to top of stack.");
 			sp = MAX_STACK_HEIGHT;
 		}
 
@@ -242,12 +250,13 @@ int main(int argc, char * argv[])
 
 		// op code 04 is STO (store)
 		case STO:
-			stack[base(ir.l, bp)] = stack[sp];
+			stack[base(ir.l, bp) + ir.m] = stack[sp];
 			sp--;
 			break;
 
 		// op code 05 is CAL (call procedure)
 		case CAL:
+			ARIlist[sp + 1] = 1;			// activation record instance separator goes here
 			stack[sp + 1] = 0;				// space to return value
 			stack[sp + 2] = base(ir.l, bp);	// static link (SL)
 			stack[sp + 3] = bp;				// dynamic link (DL)
@@ -257,7 +266,6 @@ int main(int argc, char * argv[])
 			pc = ir.m;
 
 			// find a way to delineate activation records
-			ARIcount++;
 			break;
 
 		// op code 06 is INC (allocating for incoming locals)
@@ -283,7 +291,7 @@ int main(int argc, char * argv[])
 			
 			// print top of stack to screen
 			if (ir.m == 1) {
-				printf("Stack at position %d: %d", sp, stack[sp]);
+				perror("Stack at position %d: %d", sp, stack[sp]);
 				sp--;
 			}
 
@@ -297,17 +305,24 @@ int main(int argc, char * argv[])
 				stack[sp] = 0;
 
 				if (items == EOF) {
-					printf("Input failed, value of '0' input into stack.");
+					perror("Input failed, value of '0' input into stack.");
 				}
 				else if (items == 0) {
-					printf("No input, value of '0' input into stack.");
+					perror("No input, value of '0' input into stack.");
 				}
 				else if (!isdigit(num)) {
-					printf("Input was not a number, value of '0' input into stack.");
+					perror("Input was not a number, value of '0' input into stack.");
 				}
 				else {
 					stack[sp] = num;
 				}
+			}
+
+			else {
+				run = 1;
+				sp = 0;
+				bp = 0;
+				pc = 0;
 			}
 			break;
 
@@ -315,9 +330,32 @@ int main(int argc, char * argv[])
 			break;
 		}
 
+		fprintf(writeTo, "%3d   %3d   %3d    ", pc, bp, sp);
+
+		// because of the CAL instruction, sometimes there are values past sp and bp is larger than sp
+		int stop = sp;
+		if (sp < bp) {
+			stop = bp + 3;
+		}
+
+		if (ir.op == JMP || run == 1)
+			stop = 0;
+
+		for (i = 1; i <= stop; i++) {
+			
+			// if there's a pipe at that location, then an ARI starts there
+			if (ARIlist[i] == 1)
+				fprintf(writeTo, "| ");
+			
+			fprintf(writeTo, "%d ", stack[i]);
+		}
+
+		fprintf(writeTo, "\n");
+
 	}
 
-
+	printf("PM/0 ran without error. Please see vmoutput.txt for execution details.\n");
+	fclose(writeTo);
 
 	return 0;
 }
