@@ -291,7 +291,7 @@ int main(int argc, char * argv[])
 			
 			// print top of stack to screen
 			if (ir.m == 1) {
-				perror("Stack at position %d: %d", sp, stack[sp]);
+				printf("Stack at position %d: %d", sp, stack[sp]);
 				sp--;
 			}
 
