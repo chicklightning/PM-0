@@ -1,7 +1,7 @@
 // --------------------------- //
 //     PM/O Compiler, HW1
 // Gabrielle Michaels, ga177098
-//    CAP 3402, Summer 2017
+//    COP 3402, Summer 2017
 // --------------------------- //
 
 #include <stdio.h>
