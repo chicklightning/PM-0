@@ -354,7 +354,7 @@ int main(int argc, char * argv[])
 
 	}
 
-	printf("PM/0 ran without error. Please see vmoutput.txt for execution details.\n");
+	printf("PM/0 finished running. Please see vmoutput.txt for execution details.\n");
 	fclose(writeTo);
 
 	return 0;
