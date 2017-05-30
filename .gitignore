@@ -286,3 +286,6 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+/PM0/PM0.sln
+/PM0/PM0/vminput.txt
+/PM0/PM0/vminput1.txt
