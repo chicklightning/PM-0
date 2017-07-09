@@ -2,6 +2,9 @@
 Lexical Analyzer
 */
 
+#ifndef SCANNER_H_
+#define SCANNER_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +15,7 @@ Lexical Analyzer
 
 #define MAX_CODE_LENGTH 32768
 
+int runScanner();
 
 //~~~Internal Representation Stuff~~~
 
@@ -563,14 +567,10 @@ void echoInput()
 	fprintf(outFile, "Source Program:\n%s\n\n", inputChars);
 }
 
-int main(int argc, char ** argv)
+int runScanner()
 {
-	if (argc != 3)
-	{
-		printf("Invalid arguments for lexical analyzer!\nUSAGE: ./lexicalAnalyzer [input file] [output file]\n");
-		return 1;
-	}
-	openFiles(argv[1], argv[2]);
+
+	openFiles("in.txt", "scannerout.txt");
 
 	//Uncomment this to print out the input program as well...
 	//echoInput();
@@ -580,3 +580,5 @@ int main(int argc, char ** argv)
 	fclose(outFile);
 	return 0;
 }
+
+#endif

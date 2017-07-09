@@ -4,8 +4,12 @@
 //    COP 3402, Summer 2017
 // --------------------------- //
 
+#ifndef PM0_H_
+#define PM0_H_
+
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 // --------------------------- //
 //       VARIABLE SETUP        //
@@ -53,6 +57,7 @@ int ARIlist[MAX_STACK_HEIGHT + 1] = { -1 };	// keeps track of where ARIs start
 
 // base function, provided by homework pdf
 int base(int l, int base);
+int runVM(int argc, char * argv[]);
 
 
 
@@ -61,7 +66,7 @@ int base(int l, int base);
 // --------------------------- //
 
 // main function
-int main(int argc, char * argv[])
+int runVM(int argc, char * argv[])
 {
 	// opening text file for instructions
 	FILE * readFrom;
@@ -374,3 +379,5 @@ int base(int l, int base) {
 
 	return b1;
 }
+
+#endif
