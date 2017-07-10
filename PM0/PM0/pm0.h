@@ -57,7 +57,7 @@ int ARIlist[MAX_STACK_HEIGHT + 1] = { -1 };	// keeps track of where ARIs start
 
 // base function, provided by homework pdf
 int base(int l, int base);
-int runVM(int argc, char * argv[]);
+int runVM(int verbose);
 
 
 
@@ -66,19 +66,19 @@ int runVM(int argc, char * argv[]);
 // --------------------------- //
 
 // main function
-int runVM(int argc, char * argv[])
+int runVM(int verbose)
 {
 	// opening text file for instructions
 	FILE * readFrom;
-	readFrom = fopen("vminput.txt", "r");
+	readFrom = fopen("vmin.txt", "r");
 
 	// creating output file
 	FILE * writeTo;
-	writeTo = fopen("vmoutput.txt", "w+");
+	writeTo = fopen("out.txt", "rw+");
 
 	// if file doesn't exist, exit
 	if (!readFrom) {
-		perror("Error opening file vminput.txt.");
+		perror("Error opening file vmin.txt.");
 		return 0;
 	}
 
@@ -361,6 +361,15 @@ int runVM(int argc, char * argv[])
 	}
 
 	printf("PM/0 finished running. Please see vmoutput.txt for execution details.\n");
+	
+	if (verbose == 1) {
+		// print list of tokens to screen from output file
+		int c;
+		printf("Virtual machine execution trace:/n");
+		while ((c = fgetc(writeTo)) != EOF)
+			putchar(c);
+	}
+	
 	fclose(writeTo);
 
 	return 0;

@@ -15,7 +15,7 @@ Lexical Analyzer
 
 #define MAX_CODE_LENGTH 32768
 
-int runScanner();
+int runScanner(char * fileName, int verbose);
 
 //~~~Internal Representation Stuff~~~
 
@@ -298,7 +298,7 @@ void addToBuffer(char theChar)
 void openFiles(char * inputFile, char * outputFile)
 {
 	inFile = fopen(inputFile, "r");
-	outFile = fopen(outputFile, "w");
+	outFile = fopen(outputFile, "rw");
 
 	fseek(inFile, 0, SEEK_END);
 	int inputSize = ftell(inFile);
@@ -567,15 +567,26 @@ void echoInput()
 	fprintf(outFile, "Source Program:\n%s\n\n", inputChars);
 }
 
-int runScanner()
+int runScanner(char * fileName, int verbose)
 {
 
-	openFiles("in.txt", "scannerout.txt");
+	openFiles(fileName, "scannerout.txt");
 
 	//Uncomment this to print out the input program as well...
 	//echoInput();
 
+
 	processText();
+
+	if (verbose == 1) {
+		// print list of tokens to screen from output file
+		int c;
+		printf("Scanner output:/n");
+		while ((c = fgetc(outFile)) != EOF)
+			putchar(c);
+
+	}
+
 	fclose(inFile);
 	fclose(outFile);
 	return 0;
