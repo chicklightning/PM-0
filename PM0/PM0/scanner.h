@@ -25,8 +25,10 @@ minussym = 5, multsym = 6, slashsym = 7, oddsym = 8, eqlsym = 9,
 neqsym = 10, lessym = 11, leqsym = 12, gtrsym = 13, geqsym = 14,
 lparentsym = 15, rparentsym = 16, commasym = 17, semicolonsym = 18,
 periodsym = 19, becomesym = 20, beginsym = 21, endsym = 22, ifsym = 23,
-thensym = 24, whilesym = 25, dosym = 26, callsym = 27, constsym = 28,
+thensym = 24, whilesym = 25, dosym = 26, constsym = 28,
 varsym = 29, writesym = 31, readsym = 32;
+
+//int callsym = 27;
 
 //Internal representation mapping, from integer to string.
 char IRMapping[34][64] = {
@@ -57,7 +59,7 @@ char IRMapping[34][64] = {
 	"thensym",
 	"whilesym",
 	"dosym",
-	"callsym",
+	"?",
 	"constsym",
 	"varsym",
 	"?",
@@ -73,7 +75,7 @@ char reserved[14][32] = {
 	"const",
 	"var",
 	"?",
-	"call",
+	"?",
 	"begin",
 	"end",
 	"if",
@@ -106,8 +108,8 @@ int mapReserved(int spotInReserved)
 		return constsym;
 	if (spotInReserved == 1)
 		return varsym;
-	if (spotInReserved == 3)
-		return callsym;
+	//if (spotInReserved == 3)
+	//	return callsym;
 	if (spotInReserved == 4)
 		return beginsym;
 	if (spotInReserved == 5)
@@ -328,7 +330,6 @@ void clearLexemeOutput()
 	}
 	strcat(lexemeTable, "Lexeme Table:\nlexeme       token type\n");
 	strcat(lexemeList, "Lexeme List:\n");
-	strcat(symbolicLexemeList, "Symbolic Lexeme List:\n");
 }
 
 //Insert the lexeme [lexeme] of type [tokenType] nicely into the lexeme table.
@@ -558,6 +559,7 @@ void processText()
 	//Uncomment this to print out the lexeme table as well...
 	//fprintf(outFile, "%s\n", lexemeTable);
 
+	fprintf(outFile, "Symbolic Lexeme List:\n");
 	fprintf(outFile, "%s\n\n", symbolicLexemeList);
 	fprintf(outFile, "%s", lexemeList);
 }
