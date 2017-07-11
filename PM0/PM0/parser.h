@@ -66,6 +66,20 @@ int returnValue = 0;
 // --------------------------- //
 int runParser(int verbose);
 void program();
+void block();
+void statement();
+void condition();
+void expression();
+void term();
+void factor();
+void getToken();
+Symbol * getSymbol(char * tokenName);
+void putSymbol(Symbol sym);
+void emit(int op, int l, int m);
+void checkError(char * symType, int err);
+char * chuckError(int error);
+
+
 
 void program() {
 
@@ -103,10 +117,8 @@ void block() {
 
 			getToken();
 
-			if (strcmp(currentToken.type, "becomesym") == 0) {
-				printf(error(1));
-				exit(1);
-			}
+			if (strcmp(currentToken.type, "becomesym") == 0)
+				checkError("", 1);
 
 			checkError("eqsym", 3);
 
@@ -434,7 +446,7 @@ void emit(int op, int l, int m) {
 
 	// throw error if generated code is too long
 	if (codeLine > MAX_CODE_LENGTH)
-		printf(error(26));
+		checkError("", 26);
 
 	// write generated code to output file
 	else {
@@ -450,13 +462,13 @@ void emit(int op, int l, int m) {
 void checkError(char * symType, int err) {
 
 	if (strcmp(currentToken.type, symType) != 0) {
-		printf(error(err));
+		printf("%s", chuckError(err));
 		exit(1);
 	}
 
 }
 
-char * error(int error) {
+char * chuckError(int error) {
 	returnValue = 1;
 
 	switch (error) {

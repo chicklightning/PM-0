@@ -8,14 +8,41 @@ Lexical Analyzer
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "pm0.h"
 
 
 #define MAX_NUMBER_LENGTH 5
 #define MAX_IDENTIFIER_LENGTH 11
 
-#define MAX_CODE_LENGTH 32768
-
 int runScanner(char * fileName, int verbose);
+int reservedIndex(char * identifier);
+int mapReserved(int spotInReserved);
+int mapSymbol(char * symbol);
+int isUpper(char theChar);
+int isLower(char theChar);
+int isAlpha(char theChar);
+int isDigit(char theChar);
+int isAlphanumeric(char theChar);
+int isInvisible(char theChar);
+int isSymbol(char theChar);
+int isValid(char theChar);
+void throwError(char * message);
+char getChar(int ignoreValidity);
+void ungetChar();
+void clearBuffer();
+void addToBuffer(char theChar);
+void openFiles(char * inputFile, char * outputFile);
+void clearLexemeOutput();
+void insertToLexemeTable(char * lexeme, int tokenType);
+void insertIntToLexemeList(int num);
+void insertStrToLexemeList(char * identifier);
+void processIdentifier(char * identifier);
+void processNumber(char * num);
+void processSymbol(char * sym);
+void processText();
+void echoInput();
+
+
 
 //~~~Internal Representation Stuff~~~
 
