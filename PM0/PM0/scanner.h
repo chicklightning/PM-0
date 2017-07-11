@@ -5,14 +5,17 @@ Lexical Analyzer
 #ifndef SCANNER_H_
 #define SCANNER_H_
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pm0.h"
 
 
 #define MAX_NUMBER_LENGTH 5
 #define MAX_IDENTIFIER_LENGTH 11
+
+#define MAX_CODE_LENGTH 32768
+
 
 int runScanner(char * fileName, int verbose);
 int reservedIndex(char * identifier);
@@ -42,8 +45,6 @@ void processSymbol(char * sym);
 void processText();
 void echoInput();
 
-
-
 //~~~Internal Representation Stuff~~~
 
 //Internal representation stuff
@@ -54,8 +55,6 @@ lparentsym = 15, rparentsym = 16, commasym = 17, semicolonsym = 18,
 periodsym = 19, becomesym = 20, beginsym = 21, endsym = 22, ifsym = 23,
 thensym = 24, whilesym = 25, dosym = 26, constsym = 28,
 varsym = 29, writesym = 31, readsym = 32;
-
-//int callsym = 27;
 
 //Internal representation mapping, from integer to string.
 char IRMapping[34][64] = {
@@ -86,7 +85,7 @@ char IRMapping[34][64] = {
 	"thensym",
 	"whilesym",
 	"dosym",
-	"?",
+	"?", // was "call"
 	"constsym",
 	"varsym",
 	"?",
@@ -102,7 +101,7 @@ char reserved[14][32] = {
 	"const",
 	"var",
 	"?",
-	"?",
+	"?", // was "call"
 	"begin",
 	"end",
 	"if",
@@ -272,7 +271,7 @@ char inputChars[MAX_CODE_LENGTH];
 int inputCharsSize;
 
 //The output file
-FILE * outFile, * inFile;
+FILE * outFile;
 
 //Gets a character from the input; enforces that the character is valid iff ignoreValidity is 0.
 char getChar(int ignoreValidity)
@@ -326,8 +325,8 @@ void addToBuffer(char theChar)
 //This method opens the input and output files, and also reads in all the data from the input file.
 void openFiles(char * inputFile, char * outputFile)
 {
-	inFile = fopen(inputFile, "r");
-	outFile = fopen(outputFile, "rw");
+	FILE * inFile = fopen(inputFile, "r");
+	outFile = fopen(outputFile, "w+"); // MODIFIED TO W+
 
 	fseek(inFile, 0, SEEK_END);
 	int inputSize = ftell(inFile);
@@ -339,6 +338,8 @@ void openFiles(char * inputFile, char * outputFile)
 		fscanf(inFile, "%c", &inputChars[i]);
 	}
 	inputChars[i] = '\0';
+
+	fclose(inFile);
 }
 
 //~~~Text processing~~~
@@ -357,6 +358,7 @@ void clearLexemeOutput()
 	}
 	strcat(lexemeTable, "Lexeme Table:\nlexeme       token type\n");
 	strcat(lexemeList, "Lexeme List:\n");
+	//strcat(symbolicLexemeList, "Symbolic Lexeme List:\n");
 }
 
 //Insert the lexeme [lexeme] of type [tokenType] nicely into the lexeme table.
@@ -585,8 +587,7 @@ void processText()
 
 	//Uncomment this to print out the lexeme table as well...
 	//fprintf(outFile, "%s\n", lexemeTable);
-
-	fprintf(outFile, "Symbolic Lexeme List:\n");
+	fprintf(outFile, "Symbolic lexeme list:\n"); // THIS ADDED IN
 	fprintf(outFile, "%s\n\n", symbolicLexemeList);
 	fprintf(outFile, "%s", lexemeList);
 }
@@ -596,29 +597,23 @@ void echoInput()
 	fprintf(outFile, "Source Program:\n%s\n\n", inputChars);
 }
 
-int runScanner(char * fileName, int verbose)
+int runScanner(char * inFile, int verbose)
 {
-
-	openFiles(fileName, "scannerout.txt");
+	//if (argc != 3)
+	//{
+	//	printf("invalid arguments for lexical analyzer!\nusage: ./lexicalanalyzer [input file] [output file]\n");
+	//	return 1;
+	//}
+	openFiles(inFile, "scannerout.txt");
 
 	//Uncomment this to print out the input program as well...
 	//echoInput();
 
-
 	processText();
 
-	if (verbose == 1) {
-		// print list of tokens to screen from output file
-		int c;
-		printf("Scanner output:/n");
-		while ((c = fgetc(outFile)) != EOF)
-			putchar(c);
-
-	}
-
-	fclose(inFile);
 	fclose(outFile);
+
 	return 0;
 }
 
-#endif
+#endif // !SCANNER_H_

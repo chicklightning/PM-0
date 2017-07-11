@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "scanner.h"
 
 // --------------------------- //
 //       VARIABLE SETUP        //
@@ -18,7 +19,6 @@
 
 // define compiler consts
 #define MAX_STACK_HEIGHT 2000
-#define MAX_CODE_LENGTH 500
 #define MAX_LEXI_LEVEL 3
 
 // making enums for the OP codes (for easy translation from IR.OP)

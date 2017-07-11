@@ -99,9 +99,16 @@ void block() {
 	// counting number of variables for INC instruction
 	int varCount = 0;
 
+	printf("entered block\n");
+
 	// const declaration(s)
 	// update symbol table here
+
+	printf("first token value: %\n", currentToken.type);
 	if (strcmp(currentToken.type, "constsym") == 0) {
+		
+		printf("successful strcmp 1: constsym\n");
+		
 		do {
 			// create new const in symbol table
 			Symbol newSym;
@@ -111,7 +118,8 @@ void block() {
 
 			// if there's no identifier, throw error
 			checkError("identsym", 4);
-			
+			printf("successful strcmp 2: identsym error check\n");
+
 			// put identifier into symbol for later storage
 			newSym.name = currentToken.name;
 
@@ -119,6 +127,8 @@ void block() {
 
 			if (strcmp(currentToken.type, "becomesym") == 0)
 				checkError("", 1);
+
+
 
 			checkError("eqsym", 3);
 
@@ -414,9 +424,10 @@ void factor() {
 		checkError("", 23);
 }
 
-// delimiting tokens by whitespace using strtok
+// get next token from token array
 void getToken() {
-	currentToken = tokens[tokenPointer++];
+	if (tokenPointer < 1000)
+		currentToken = tokens[tokenPointer++];
 }
 
 Symbol * getSymbol(char * tokenName) {
@@ -562,7 +573,7 @@ char * chuckError(int error) {
 int runParser(int verbose) {
 
 	// creating output file for virtual machine
-	writeTo = fopen("vmin.txt", "rw+");
+	writeTo = fopen("vmin.txt", "w+");
 	
 	// get all tokens and put into a token table
 	token = strtok(symbolicLexemeList, " ");
@@ -572,19 +583,26 @@ int runParser(int verbose) {
 		Token curr;
 		curr.type = token;
 
+		printf("current token type: %s\n", curr.type);
+
 		// if identsym, store name
 		if (strcmp(curr.type, "identsym") == 0) {
 			token = strtok(NULL, " ");
 			curr.name = token;
+			printf("current token name: %s\n", curr.name);
 		}
 
 		// if numbersym, store value
 		else if (strcmp(curr.type, "numbersym") == 0) {
 			token = strtok(NULL, " ");
 			curr.value = atoi(token);
+			printf("current token value: %d\n", curr.value);
 		}
 
-		token = strtok(NULL, " ");
+		if (token != NULL)
+			token = strtok(NULL, " ");
+		else
+			break;
 	}
 
 	program();
