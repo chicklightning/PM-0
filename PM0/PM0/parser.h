@@ -90,7 +90,7 @@ void program() {
 	checkError("periodsym", 9);
 
 	// emit halt command
-	emit(SIO, 0, 2);
+	emit(SIO, 0, 3);
 
 }
 
@@ -121,9 +121,7 @@ void block() {
 			if (strcmp(currentToken.type, "becomesym") == 0)
 				checkError("", 1);
 
-
-
-			checkError("eqsym", 3);
+			checkError("eqlsym", 3);
 
 			getToken();
 			
@@ -140,7 +138,7 @@ void block() {
 
 		} while (strcmp(currentToken.type, "commasym") == 0);
 
-		checkError("commasym", 5);
+		checkError("semicolonsym", 5);
 
 		getToken();
 	}
@@ -258,7 +256,7 @@ void statement() {
 		Symbol * sym = getSymbol(currentToken.name);
 
 		// read in the input
-		emit(SIO, 0, 1);
+		emit(SIO, 0, 2);
 
 		if (strcmp(currentToken.type, "identsym") == 0)
 			emit(STO, 0, sym->addr);
@@ -273,10 +271,7 @@ void statement() {
 		getToken();
 
 		if (strcmp(currentToken.type, "identsym") != 0 && strcmp(currentToken.type, "numbersym") != 0)
-		{
-			printf("%s", chuckError(27));
-			exit(1);
-		}
+			checkError("", 27);
 
 		Symbol * sym = getSymbol(currentToken.name);
 
@@ -286,7 +281,7 @@ void statement() {
 		else
 			emit(LIT, 0, sym->val);
 
-		emit(SIO, 0, 0);
+		emit(SIO, 0, 1);
 
 		getToken();
 	}
@@ -302,14 +297,12 @@ void condition() {
 	else {
 		expression();
 
-		checkError("leqsym", 20);
-		checkError("neqsym", 20);
-		checkError("lessym", 20);
-		checkError("geqsym", 20);
-		checkError("gtrsym", 20);
-		checkError("eqsym", 20);
-
 		char * tempType = currentToken.type;
+
+		if (strcmp(tempType, "leqsym") != 0 && strcmp(tempType, "neqsym") != 0
+			&& strcmp(tempType, "lessym") != 0 && strcmp(tempType, "geqsym") != 0
+			&& strcmp(tempType, "gtrsym") != 0 && strcmp(tempType, "eqlsym") != 0)
+			checkError("", 20);
 
 		getToken();
 		expression();
@@ -324,7 +317,7 @@ void condition() {
 			emit(OPR, 0, 13);
 		else if (strcmp(tempType, "gtrsym") == 0)
 			emit(OPR, 0, 12);
-		else if (strcmp(tempType, "eqsym") == 0)
+		else if (strcmp(tempType, "eqlsym") == 0)
 			emit(OPR, 0, 8);
 		else
 			checkError("", 26);
