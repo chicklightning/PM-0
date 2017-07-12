@@ -99,15 +99,9 @@ void block() {
 	// counting number of variables for INC instruction
 	int varCount = 0;
 
-	printf("entered block\n");
-
 	// const declaration(s)
 	// update symbol table here
-
-	printf("first token value: %\n", currentToken.type);
 	if (strcmp(currentToken.type, "constsym") == 0) {
-		
-		printf("successful strcmp 1: constsym\n");
 		
 		do {
 			// create new const in symbol table
@@ -118,7 +112,6 @@ void block() {
 
 			// if there's no identifier, throw error
 			checkError("identsym", 4);
-			printf("successful strcmp 2: identsym error check\n");
 
 			// put identifier into symbol for later storage
 			newSym.name = currentToken.name;
@@ -259,7 +252,7 @@ void statement() {
 
 	else if (strcmp(currentToken.type, "readsym") == 0) {
 		getToken();
-		checkError("identsym", 14);
+		checkError("identsym", 27);
 
 		// get input and store in a symbol from symbol table
 		Symbol * sym = getSymbol(currentToken.name);
@@ -279,8 +272,11 @@ void statement() {
 	else if (strcmp(currentToken.type, "writesym") == 0) {
 		getToken();
 
-		checkError("identsym", 14);
-		checkError("numbersym", 14);
+		if (strcmp(currentToken.type, "identsym") != 0 && strcmp(currentToken.type, "numbersym") != 0)
+		{
+			printf("%s", chuckError(27));
+			exit(1);
+		}
 
 		Symbol * sym = getSymbol(currentToken.name);
 
@@ -461,7 +457,7 @@ void emit(int op, int l, int m) {
 
 	// write generated code to output file
 	else {
-		if (codeLine != 0)
+		if (codeLine > 0)
 			fprintf(writeTo, "\n");
 
 		fprintf(writeTo, "%d %d %d", op, l, m);
@@ -565,6 +561,9 @@ char * chuckError(int error) {
 	case 26:
 		return "Generated assembly code is too long.\n";
 
+	case 27:
+		return "read, write must be followed by identifier.\n";
+
 	default:
 		return "";
 	}
@@ -573,31 +572,31 @@ char * chuckError(int error) {
 int runParser(int verbose) {
 
 	// creating output file for virtual machine
-	writeTo = fopen("vmin.txt", "w+");
+	writeTo = fopen("vmin.txt", "a+");
 	
 	// get all tokens and put into a token table
 	token = strtok(symbolicLexemeList, " ");
+	int i = 0;
 
 	while (token != NULL) {
 
 		Token curr;
 		curr.type = token;
 
-		printf("current token type: %s\n", curr.type);
-
 		// if identsym, store name
 		if (strcmp(curr.type, "identsym") == 0) {
 			token = strtok(NULL, " ");
 			curr.name = token;
-			printf("current token name: %s\n", curr.name);
 		}
 
 		// if numbersym, store value
 		else if (strcmp(curr.type, "numbersym") == 0) {
 			token = strtok(NULL, " ");
 			curr.value = atoi(token);
-			printf("current token value: %d\n", curr.value);
 		}
+
+		tokens[i] = curr;
+		i++;
 
 		if (token != NULL)
 			token = strtok(NULL, " ");
@@ -610,11 +609,14 @@ int runParser(int verbose) {
 	// decided by user when running compiler
 	if (verbose == 1) {
 		// print generated assembly code
-		int c;
-		printf("Generated assembly code:/n");
-		while ((c = fgetc(writeTo)) != EOF)
-			putchar(c);
-
+		printf("Generated assembly code:\n");
+		char c = fgetc(writeTo);
+		while (c != EOF)
+		{
+			printf("entering print statement");
+			printf("%c", c);
+			c = fgetc(writeTo);
+		}
 	}
 
 	fclose(writeTo);

@@ -59,11 +59,12 @@ int main(int argc, char ** argv) {
 
 	// parser found no errors
 	if (check2 == 0) {
+		printf("No errors, program is syntactically correct.\n");
 		runVM(v);
 		printf("Finished virtual machine execution of code.\n");
 	}
 
-	printf("For fully detailed description of scanning, parsing, and execution, see \"out.txt\".");
+	printf("For fully detailed description of scanning, parsing, and execution, see \"out.txt\".\n");
 
 	// concatenate output files into "out.txt"
 

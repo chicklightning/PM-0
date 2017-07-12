@@ -75,7 +75,7 @@ int runVM(int verbose)
 
 	// creating output file
 	FILE * writeTo;
-	writeTo = fopen("out.txt", "rw+");
+	writeTo = fopen("out.txt", "w+");
 
 	// if file doesn't exist, exit
 	if (!readFrom) {
@@ -298,7 +298,7 @@ int runVM(int verbose)
 
 			// print top of stack to screen
 			if (ir.m == 1) {
-				printf("Stack at position %d: %d", sp, stack[sp]);
+				printf("Stack at position %d: %d\n", sp, stack[sp]);
 				sp--;
 			}
 
@@ -361,14 +361,16 @@ int runVM(int verbose)
 
 	}
 
-	printf("PM/0 finished running. Please see vmoutput.txt for execution details.\n");
-	
 	if (verbose == 1) {
 		// print list of tokens to screen from output file
-		int c;
-		printf("Virtual machine execution trace:/n");
-		while ((c = fgetc(writeTo)) != EOF)
-			putchar(c);
+		printf("Virtual machine execution trace:\n");
+		char c = fgetc(writeTo);
+		while (c != EOF)
+		{
+			printf("entering print statement");
+			printf("%c", c);
+			c = fgetc(writeTo);
+		}
 	}
 	
 	fclose(writeTo);

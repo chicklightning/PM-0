@@ -611,6 +611,18 @@ int runScanner(char * inFile, int verbose)
 
 	processText();
 
+	if (verbose == 1) {
+		// print lexeme table
+		printf("Lexeme outputs:\n\n");
+		char c = fgetc(outFile);
+		while (c != EOF)
+		{
+			printf("entering print statement");
+			printf("%c", c);
+			c = fgetc(outFile);
+		}
+	}
+
 	fclose(outFile);
 
 	return 0;
