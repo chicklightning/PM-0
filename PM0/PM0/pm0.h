@@ -84,6 +84,10 @@ int runVM(int verbose)
 	}
 
 	int codeCounter = 0;
+
+	if(verbose == 1)
+		printf("Generated assembly code:\n");
+
 	while (!feof(readFrom)) {
 
 		// if codeCounter increases to MAX_CODE_LENGTH + 1, regardless of file length, HALT is inserted
@@ -103,8 +107,15 @@ int runVM(int verbose)
 		fscanf(readFrom, "%d", &code[codeCounter].m);
 		code[(codeCounter)].line = codeCounter;
 
+		// if -a is selected, print out the given assembly instructions line by line
+		if (verbose == 1) {
+			printf("%d %d %d\n", code[(codeCounter)].op, code[(codeCounter)].l, code[(codeCounter)].m);
+		}
+
 		codeCounter++;
 	}
+
+	printf("\n");
 
 	fclose(readFrom);
 
@@ -361,18 +372,6 @@ int runVM(int verbose)
 
 	}
 
-	if (verbose == 1) {
-		// print list of tokens to screen from output file
-		printf("Virtual machine execution trace:\n");
-		char c = fgetc(writeTo);
-		while (c != EOF)
-		{
-			printf("entering print statement");
-			printf("%c", c);
-			c = fgetc(writeTo);
-		}
-	}
-	
 	fclose(writeTo);
 
 	return 0;

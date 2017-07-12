@@ -55,13 +55,24 @@ int main(int argc, char ** argv) {
 
 	// scanner ran correctly
 	if(check1 == 0)
-		check2 = runParser(a);
+		check2 = runParser();
 
 	// parser found no errors
 	if (check2 == 0) {
 		printf("No errors, program is syntactically correct.\n");
-		runVM(v);
-		printf("Finished virtual machine execution of code.\n");
+		runVM(a);
+		if (v == 1) {
+			FILE * vmtrace = fopen("out.txt", "r+");
+			// print generated assembly code
+			printf("\nVirtual Machine execution trace:\n");
+			char c = fgetc(writeTo);
+			while (c != EOF)
+			{
+				printf("%c", c);
+				c = fgetc(writeTo);
+			}
+			printf("\n");
+		}
 	}
 
 	printf("For fully detailed description of scanning, parsing, and execution, see \"out.txt\".\n");

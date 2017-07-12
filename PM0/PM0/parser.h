@@ -64,7 +64,7 @@ int returnValue = 0;
 // --------------------------- //
 //          FUNCTIONS          //
 // --------------------------- //
-int runParser(int verbose);
+int runParser();
 void program();
 void block();
 void statement();
@@ -569,7 +569,7 @@ char * chuckError(int error) {
 	}
 }
 
-int runParser(int verbose) {
+int runParser() {
 
 	// creating output file for virtual machine
 	writeTo = fopen("vmin.txt", "a+");
@@ -605,19 +605,6 @@ int runParser(int verbose) {
 	}
 
 	program();
-
-	// decided by user when running compiler
-	if (verbose == 1) {
-		// print generated assembly code
-		printf("Generated assembly code:\n");
-		char c = fgetc(writeTo);
-		while (c != EOF)
-		{
-			printf("entering print statement");
-			printf("%c", c);
-			c = fgetc(writeTo);
-		}
-	}
 
 	fclose(writeTo);
 

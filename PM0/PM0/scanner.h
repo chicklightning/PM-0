@@ -42,7 +42,7 @@ void insertStrToLexemeList(char * identifier);
 void processIdentifier(char * identifier);
 void processNumber(char * num);
 void processSymbol(char * sym);
-void processText();
+void processText(int verbose);
 void echoInput();
 
 //~~~Internal Representation Stuff~~~
@@ -428,7 +428,7 @@ void processSymbol(char * sym)
 }
 
 //The meat of the program, where the actual fancy important scanning stuff happens!
-void processText()
+void processText(int verbose)
 {
 	//Clear out the output arrays...
 	clearLexemeOutput();
@@ -590,6 +590,12 @@ void processText()
 	fprintf(outFile, "Symbolic lexeme list:\n"); // THIS ADDED IN
 	fprintf(outFile, "%s\n\n", symbolicLexemeList);
 	fprintf(outFile, "%s", lexemeList);
+	
+	if (verbose == 1) {
+		printf("\nSymbolic lexeme list:\n"); // THIS ADDED IN
+		printf("%s\n\n", symbolicLexemeList);
+		printf("%s\n\n", lexemeList);
+	}
 }
 
 void echoInput()
@@ -609,19 +615,7 @@ int runScanner(char * inFile, int verbose)
 	//Uncomment this to print out the input program as well...
 	//echoInput();
 
-	processText();
-
-	if (verbose == 1) {
-		// print lexeme table
-		printf("Lexeme outputs:\n\n");
-		char c = fgetc(outFile);
-		while (c != EOF)
-		{
-			printf("entering print statement");
-			printf("%c", c);
-			c = fgetc(outFile);
-		}
-	}
+	processText(verbose);
 
 	fclose(outFile);
 
