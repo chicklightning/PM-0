@@ -328,6 +328,11 @@ void openFiles(char * inputFile, char * outputFile)
 	FILE * inFile = fopen(inputFile, "r");
 	outFile = fopen(outputFile, "w+"); // MODIFIED TO W+
 
+	if (!inFile) {
+		perror("Error opening file.");
+		exit(1);
+	}
+
 	fseek(inFile, 0, SEEK_END);
 	int inputSize = ftell(inFile);
 	inputCharsSize = inputSize;

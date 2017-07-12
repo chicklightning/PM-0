@@ -1,5 +1,5 @@
 // --------------------------- //
-//     PM/O Compiler, HW1
+//        PM/O VM, HW1
 // Gabrielle Michaels, ga177098
 //    COP 3402, Summer 2017
 // --------------------------- //
@@ -75,7 +75,7 @@ int runVM(int verbose)
 
 	// creating output file
 	FILE * writeTo;
-	writeTo = fopen("out.txt", "w+");
+	writeTo = fopen("vmout.txt", "w+");
 
 	// if file doesn't exist, exit
 	if (!readFrom) {
@@ -86,7 +86,7 @@ int runVM(int verbose)
 	int codeCounter = 0;
 
 	if(verbose == 1)
-		printf("Generated assembly code:\n");
+		printf("\nGenerated assembly code:\n");
 
 	while (!feof(readFrom)) {
 
@@ -309,13 +309,15 @@ int runVM(int verbose)
 
 			// print top of stack to screen
 			if (ir.m == 1) {
-				printf("Stack at position %d: %d\n", sp, stack[sp]);
+				printf("Stack out: %d\n", stack[sp]);
 				sp--;
 			}
 
 			// read input from user and put on stack
 			else if (ir.m == 2) {
 				int num, items;
+
+				printf("Enter number: ");
 
 				items = scanf("%d", &num);
 
@@ -327,9 +329,6 @@ int runVM(int verbose)
 				}
 				else if (items == 0) {
 					perror("No input, value of '0' input into stack.");
-				}
-				else if (!isdigit(num)) {
-					perror("Input was not a number, value of '0' input into stack.");
 				}
 				else {
 					stack[sp] = num;

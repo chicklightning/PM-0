@@ -4,19 +4,6 @@
 //    COP 3402, Summer 2017
 // --------------------------- //
 
-// This reads the output tokens from scanner.c and
-// produces output saying whether the program is syntatically correct
-// if not, error type must be printed
-// open "scannerout.txt"
-
-// must also generate symbol table which contains all variables,
-// procedure names, and constants from the program
-
-// gives the okay for the intermediate code generator
-
-// code generator can also be in here (done as tokens are parsed)
-
-
 #ifndef PARSER_H_
 #define PARSER_H_
 
@@ -52,6 +39,7 @@ int symPointer = 0;
 Token tokens[1000];
 int tokenPointer = 0;
 Token currentToken;
+Instruction gencode[MAX_CODE_LENGTH];
 
 int codeLine = 0;
 char * token;
@@ -174,9 +162,9 @@ void block() {
 
 	// procedure declaration(s) would go here
 
-	code[codeLine].m = codeLine;
+	gencode[codeLine].m = codeLine;
 
-	emit(INC, 0, 4 + varCount);
+	emit(INC, 0, 3 + varCount);
 
 	statement();
 }
@@ -195,7 +183,7 @@ void statement() {
 		expression();
 
 		// STORE at lex level 0 using symbol address
-		emit(STO, 0, sym->addr);
+		emit(STO, 0, sym->addr - 1);
 	}
 
 	// call sym would go here
@@ -225,7 +213,7 @@ void statement() {
 
 		statement();
 
-		code[temp].m = codeLine;
+		gencode[temp].m = codeLine;
 	}
 
 	else if (strcmp(currentToken.type, "whilesym") == 0) {
@@ -245,7 +233,7 @@ void statement() {
 		statement();
 
 		emit(JMP, 0, cx1);
-		code[cx2].m = codeLine;
+		gencode[cx2].m = codeLine;
 	}
 
 	else if (strcmp(currentToken.type, "readsym") == 0) {
@@ -259,7 +247,7 @@ void statement() {
 		emit(SIO, 0, 2);
 
 		if (strcmp(currentToken.type, "identsym") == 0)
-			emit(STO, 0, sym->addr);
+			emit(STO, 0, sym->addr - 1);
 
 		else
 			emit(LIT, 0, currentToken.value);
@@ -273,13 +261,14 @@ void statement() {
 		if (strcmp(currentToken.type, "identsym") != 0 && strcmp(currentToken.type, "numbersym") != 0)
 			checkError("", 27);
 
-		Symbol * sym = getSymbol(currentToken.name);
-
-		// if the symbol being written to is a variable
-		if (sym->kind == 2)
-			emit(LOD, 0, sym->addr);
+		// if the symbol being written to screen is a variable
+		if (strcmp(currentToken.type, "identsym") == 0) {
+			Symbol * sym = getSymbol(currentToken.name);
+			emit(LOD, 0, sym->addr - 1);
+		}
+		// if it's just a number
 		else
-			emit(LIT, 0, sym->val);
+			emit(LIT, 0, currentToken.value);
 
 		emit(SIO, 0, 1);
 
@@ -381,13 +370,13 @@ void factor() {
 
 		Symbol * sym = getSymbol(currentToken.name);
 
-		// if symbol is a variable
+		// if symbol is a constant
 		if (sym->kind == 1)
 			emit(LIT, 0, sym->val);
 
-		// otherwise it's a constant
+		// otherwise it's a variable
 		else
-			emit(LOD, 0, sym->addr);
+			emit(LOD, 0, sym->addr - 1);
 
 		getToken();
 	}
@@ -419,6 +408,7 @@ void getToken() {
 		currentToken = tokens[tokenPointer++];
 }
 
+// retrieve symbol from symbol table
 Symbol * getSymbol(char * tokenName) {
 
 	int i;
@@ -448,12 +438,11 @@ void emit(int op, int l, int m) {
 	if (codeLine > MAX_CODE_LENGTH)
 		checkError("", 26);
 
-	// write generated code to output file
+	// write generated code to array
 	else {
-		if (codeLine > 0)
-			fprintf(writeTo, "\n");
-
-		fprintf(writeTo, "%d %d %d", op, l, m);
+		gencode[codeLine].op = op;
+		gencode[codeLine].l = l;
+		gencode[codeLine].m = m;
 		codeLine++;
 	}
 
@@ -598,6 +587,12 @@ int runParser() {
 	}
 
 	program();
+
+	//write to file
+	fprintf(writeTo, "%d %d %d", gencode[0].op, gencode[0].l, gencode[0].m);
+	for (i = 1; i < codeLine; i++) {
+		fprintf(writeTo, "\n%d %d %d", gencode[i].op, gencode[i].l, gencode[i].m);
+	}
 
 	fclose(writeTo);
 
