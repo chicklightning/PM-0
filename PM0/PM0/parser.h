@@ -4,6 +4,9 @@
 //    COP 3402, Summer 2017
 // --------------------------- //
 
+// ERRORS MISSING FROM CODE: 17, 19, 24, 25
+// NOT NEEDED: 21, 6, 12, 14, 15, 7, 10
+
 #ifndef PARSER_H_
 #define PARSER_H_
 
@@ -38,6 +41,7 @@ Symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
 int symPointer = 0;
 Token tokens[1000];
 int tokenPointer = 0;
+int tokenCount = 0;
 Token currentToken;
 Instruction gencode[MAX_CODE_LENGTH];
 
@@ -176,6 +180,10 @@ void statement() {
 		// get symbol from table
 		Symbol * sym = getSymbol(currentToken.name);
 
+		// if symbol doesn't exist, it wasn't declared
+		if (sym == NULL)
+			checkError("", 11);
+
 		getToken();
 		checkError("becomesym", 13);
 
@@ -243,6 +251,10 @@ void statement() {
 		// get input and store in a symbol from symbol table
 		Symbol * sym = getSymbol(currentToken.name);
 
+		// identifier doesn't exist in symbol table
+		if (sym == NULL)
+			checkError("", 11);
+
 		// read in the input
 		emit(SIO, 0, 2);
 
@@ -264,6 +276,11 @@ void statement() {
 		// if the symbol being written to screen is a variable
 		if (strcmp(currentToken.type, "identsym") == 0) {
 			Symbol * sym = getSymbol(currentToken.name);
+
+			// if symbol doesn't exist in symbol table, error
+			if (sym == NULL)
+				checkError("", 11);
+
 			emit(LOD, 0, sym->addr - 1);
 		}
 		// if it's just a number
@@ -370,6 +387,10 @@ void factor() {
 
 		Symbol * sym = getSymbol(currentToken.name);
 
+		// symbol doesn't exist in table, wasn't declared
+		if (sym == NULL)
+			checkError("", 11);
+
 		// if symbol is a constant
 		if (sym->kind == 1)
 			emit(LIT, 0, sym->val);
@@ -404,7 +425,7 @@ void factor() {
 
 // get next token from token array
 void getToken() {
-	if (tokenPointer < 1000)
+	if (tokenPointer <= tokenCount)
 		currentToken = tokens[tokenPointer++];
 }
 
@@ -427,9 +448,14 @@ Symbol * getSymbol(char * tokenName) {
 
 void putSymbol(Symbol sym) {
 	
-	symbol_table[symPointer] = sym;
+	if (getSymbol(sym.name) == NULL) {
+		symbol_table[symPointer] = sym;
+		symPointer++;
+	}
 
-	symPointer++;
+	// can't have two identifiers with the same name
+	else
+		checkError("", 28);
 }
 
 void emit(int op, int l, int m) {
@@ -450,7 +476,12 @@ void emit(int op, int l, int m) {
 
 void checkError(char * symType, int err) {
 
-	if (strcmp(currentToken.type, symType) != 0) {
+	if (tokenPointer > tokenCount) {
+		printf("%s", chuckError(err));
+		exit(1);
+	}
+
+	else if (strcmp(currentToken.type, symType) != 0) {
 		printf("%s", chuckError(err));
 		exit(1);
 	}
@@ -544,7 +575,10 @@ char * chuckError(int error) {
 		return "Generated assembly code is too long.\n";
 
 	case 27:
-		return "read, write must be followed by identifier.\n";
+		return "read, write must be followed by identifier or number.\n";
+
+	case 28:
+		return "Can't have two identifiers with the same name.\n";
 
 	default:
 		return "";
@@ -558,7 +592,6 @@ int runParser() {
 	
 	// get all tokens and put into a token table
 	token = strtok(symbolicLexemeList, " ");
-	int i = 0;
 
 	while (token != NULL) {
 
@@ -577,8 +610,8 @@ int runParser() {
 			curr.value = atoi(token);
 		}
 
-		tokens[i] = curr;
-		i++;
+		tokens[tokenCount] = curr;
+		tokenCount++;
 
 		if (token != NULL)
 			token = strtok(NULL, " ");
@@ -588,6 +621,7 @@ int runParser() {
 
 	program();
 
+	int i = 0;
 	//write to file
 	fprintf(writeTo, "%d %d %d", gencode[0].op, gencode[0].l, gencode[0].m);
 	for (i = 1; i < codeLine; i++) {
