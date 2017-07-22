@@ -117,7 +117,8 @@ char reserved[14][32] = {
 //Returns the index in reserved of the string pointed to by [identifier].
 int reservedIndex(char * identifier)
 {
-	for (int i = 0; i < 14; i++)
+	int i = 0;
+	for (i = 0; i < 14; i++)
 	{
 		if (strcmp(reserved[i], identifier) == 0)
 		{
@@ -237,7 +238,8 @@ int isInvisible(char theChar)
 //Returns 1 iff [theChar] is a valid symbol, 0 otherwise.
 int isSymbol(char theChar)
 {
-	for (int i = 0; i < 13; i++)
+	int i = 0;
+	for (i = 0; i < 13; i++)
 	{
 		if (symbols[i] == theChar)
 			return 1;
@@ -306,7 +308,8 @@ char buffer[16];
 void clearBuffer()
 {
 	bp = 0;
-	for (int i = 0; i < 16; i++)
+	int i = 0;
+	for (i = 0; i < 16; i++)
 	{
 		buffer[i] = '\0';
 	}
@@ -355,7 +358,8 @@ char symbolicLexemeList[MAX_CODE_LENGTH];
 //Overwrite all data in the lexeme output arrays!
 void clearLexemeOutput()
 {
-	for (int i = 0; i < MAX_CODE_LENGTH; i++)
+	int i = 0;
+	for (i = 0; i < MAX_CODE_LENGTH; i++)
 	{
 		lexemeTable[i] = '\0';
 		lexemeList[i] = '\0';
