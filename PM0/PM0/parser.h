@@ -51,6 +51,7 @@ char * token;
 FILE * writeTo;
 
 int returnValue = 0;
+int level = 0; // the lexicographical level
 
 
 // --------------------------- //
@@ -151,7 +152,7 @@ void block() {
 
 			// get string for variable name and update symbol table
 			newSym.name = currentToken.name;
-			newSym.level = 0;
+			newSym.level = level;
 			newSym.addr = 3 + varCount; // addresses start at 4
 			putSymbol(newSym);
 
@@ -164,7 +165,33 @@ void block() {
 		getToken();
 	}
 
-	// procedure declaration(s) would go here
+	// procedures
+	while (strcmp(currentToken.type, "procsym") == 0) {
+		getToken();
+
+		checkError("identsym", 4);
+
+		Symbol newSym;
+		newSym.kind = 3; // proc sym
+		newSym.name = currentToken.name;
+		newSym.level = level;
+		newSym.addr = codeLine;
+		level++; // entered proc, increase lex level
+
+		putSymbol(newSym);
+
+		getToken();
+
+		checkError("semicolonsym", 5);
+		getToken();
+		block();
+		emit(OPR, 0, 0);
+
+		level--; // exited proc, decrease lex level
+
+		checkError("semicolonsym", 5);
+		getToken();
+	}
 
 	gencode[codeLine].m = codeLine;
 
@@ -190,11 +217,19 @@ void statement() {
 		getToken();
 		expression();
 
-		// STORE at lex level 0 using symbol address
-		emit(STO, 0, sym->addr - 1);
+		// STORE
+		emit(STO, level - sym->level, sym->addr - 1);
 	}
 
-	// call sym would go here
+	// call a procedure
+	else if (strcmp(currentToken.type, "callsym") == 0) {
+		getToken();
+		checkError("identsym", 14);
+
+		Symbol * sym = getSymbol(currentToken.name);
+		emit(CAL, level - sym->level, sym->addr - 1);
+		getToken();
+	}
 
 	else if (strcmp(currentToken.type, "beginsym") == 0) {
 		getToken();
@@ -281,7 +316,7 @@ void statement() {
 			if (sym == NULL)
 				checkError("", 11);
 
-			emit(LOD, 0, sym->addr - 1);
+			emit(LOD, level - sym->level, sym->addr - 1);
 		}
 		// if it's just a number
 		else
@@ -397,7 +432,7 @@ void factor() {
 
 		// otherwise it's a variable
 		else
-			emit(LOD, 0, sym->addr - 1);
+			emit(LOD, level - sym->level, sym->addr - 1);
 
 		getToken();
 	}
