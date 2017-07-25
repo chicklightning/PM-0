@@ -4,9 +4,6 @@
 //    COP 3402, Summer 2017
 // --------------------------- //
 
-// ERRORS MISSING FROM CODE: 17, 19, 24, 25
-// NOT NEEDED: 21, 6, 12, 14, 15, 7, 10
-
 #ifndef PARSER_H_
 #define PARSER_H_
 
@@ -211,6 +208,10 @@ void statement() {
 		if (sym == NULL)
 			checkError("", 11);
 
+		// can't assign to a const or proc
+		else if (sym->kind != 2)
+			checkError("", 12);
+
 		getToken();
 		checkError("becomesym", 13);
 
@@ -227,6 +228,15 @@ void statement() {
 		checkError("identsym", 14);
 
 		Symbol * sym = getSymbol(currentToken.name);
+
+		// incorrect or undeclared identifier
+		if (sym == NULL)
+			checkError("", 11);
+
+		// can't call a const or var
+		else if (sym->kind != 3)
+			checkError("", 15);
+
 		emit(CAL, level - sym->level, sym->addr - 1);
 		getToken();
 	}
@@ -301,6 +311,9 @@ void statement() {
 		if (sym == NULL)
 			checkError("", 11);
 
+		else if (sym->kind == 3)
+			checkError("", 29);
+
 		// read in the input
 		emit(SIO, 0, 2);
 
@@ -327,8 +340,13 @@ void statement() {
 			if (sym == NULL)
 				checkError("", 11);
 
+			// assignment to const or proc not allowed
+			else if (sym->kind != 2)
+				checkError("", 12);
+
 			emit(LOD, level - sym->level, sym->addr - 1);
 		}
+		
 		// if it's just a number
 		else
 			emit(LIT, 0, currentToken.value);
@@ -438,13 +456,18 @@ void factor() {
 			checkError("", 11);
 
 		// if symbol is a constant
-		if (sym->kind == 1)
+		else if (sym->kind == 1)
 			emit(LIT, 0, sym->val);
 
 		// otherwise it's a variable
-		else
+		else if (sym->kind == 2)
 			emit(LOD, level - sym->level, sym->addr - 1);
 
+		// if it's a procedure identifier, throw an error
+		else
+			checkError("", 21);
+
+				
 		getToken();
 	}
 
@@ -625,6 +648,9 @@ char * chuckError(int error) {
 
 	case 28:
 		return "Can't have two identifiers with the same name.\n";
+
+	case 29:
+		return "Can't perform \"read\" on a procedure.\n";
 
 	default:
 		return "";
