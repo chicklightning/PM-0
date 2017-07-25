@@ -257,6 +257,17 @@ void statement() {
 		statement();
 
 		gencode[temp].m = codeLine;
+
+		if (strcmp(currentToken.type, "elsesym") == 0) {
+			gencode[temp].m = codeLine + 1;
+
+			temp = codeLine;
+			emit(JMP, 0, 0);
+			getToken();
+			statement();
+
+			code[temp].m = codeLine;
+		}
 	}
 
 	else if (strcmp(currentToken.type, "whilesym") == 0) {
