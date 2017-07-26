@@ -88,6 +88,8 @@ void block() {
 	
 	// counting number of variables for INC instruction
 	int varCount = 0;
+	int temp = codeLine;
+	emit(JMP, 0, 0);
 
 	// const declaration(s)
 	// update symbol table here
@@ -136,6 +138,7 @@ void block() {
 	// variable declaration(s)
 	if (strcmp(currentToken.type, "varsym") == 0) {
 
+		varCount = 0; // resetting for when you need to "INC" after proc
 		do {
 
 			Symbol newSym;
@@ -190,9 +193,10 @@ void block() {
 		getToken();
 	}
 
-	gencode[codeLine].m = codeLine;
+	gencode[temp].m = codeLine;
 
-	emit(INC, 0, 3 + varCount);
+	// incoming 4 + number of variables
+	emit(INC, 0, 4 + varCount);
 
 	statement();
 }
@@ -219,7 +223,7 @@ void statement() {
 		expression();
 
 		// STORE
-		emit(STO, level - sym->level, sym->addr - 1);
+		emit(STO, level - sym->level, sym->addr);
 	}
 
 	// call a procedure
@@ -237,7 +241,7 @@ void statement() {
 		else if (sym->kind != 3)
 			checkError("", 15);
 
-		emit(CAL, level - sym->level, sym->addr - 1);
+		emit(CAL, level - sym->level, sym->addr);
 		getToken();
 	}
 
@@ -276,7 +280,7 @@ void statement() {
 			getToken();
 			statement();
 
-			code[temp].m = codeLine;
+			gencode[temp].m = codeLine;
 		}
 	}
 
@@ -318,7 +322,7 @@ void statement() {
 		emit(SIO, 0, 2);
 
 		if (strcmp(currentToken.type, "identsym") == 0)
-			emit(STO, 0, sym->addr - 1);
+			emit(STO, 0, sym->addr);
 
 		else
 			emit(LIT, 0, currentToken.value);
@@ -344,7 +348,7 @@ void statement() {
 			else if (sym->kind != 2)
 				checkError("", 12);
 
-			emit(LOD, level - sym->level, sym->addr - 1);
+			emit(LOD, level - sym->level, sym->addr);
 		}
 		
 		// if it's just a number
@@ -461,7 +465,7 @@ void factor() {
 
 		// otherwise it's a variable
 		else if (sym->kind == 2)
-			emit(LOD, level - sym->level, sym->addr - 1);
+			emit(LOD, level - sym->level, sym->addr);
 
 		// if it's a procedure identifier, throw an error
 		else
