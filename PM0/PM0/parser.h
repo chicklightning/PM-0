@@ -24,7 +24,6 @@ typedef struct {
 	int val;		// number (ASCII value)
 	int level;		// L level
 	int addr;		// M address
-	char * nested;	// is nested inside of this procedure and can be called by it or its parents
 } Symbol;
 
 typedef struct {
@@ -57,8 +56,8 @@ int level = 0; // the lexicographical level
 // --------------------------- //
 int runParser();
 void program();
-void block(char * nested);
-void statement(char * nested);
+void block();
+void statement();
 void condition();
 void expression();
 void term();
@@ -75,7 +74,7 @@ char * chuckError(int error);
 void program() {
 
 	getToken();
-	block("");
+	block();
 
 	// if current token is not a period, throw error
 	checkError("periodsym", 9);
@@ -86,10 +85,8 @@ void program() {
 }
 
 // pass the nested procedure into the block so it can be noted
-void block(char * nested) {
-	
-	if (level == 0)
-		nested = "";
+void block() {
+
 
 	// counting number of variables for INC instruction
 	int varCount = 0;
@@ -181,22 +178,16 @@ void block(char * nested) {
 		newSym.name = currentToken.name;
 		newSym.level = level;
 		newSym.addr = codeLine;
-		newSym.nested = nested; // empty string if level 0 procedure, proc identifier if otherwise
-
+		
 		level++; // entered proc, increase lex level
-
 		putSymbol(newSym);
-
 		getToken();
 
 		checkError("semicolonsym", 5);
 		getToken();
 
 		// if a new procedure is called, it's nested inside of another procedure
-		block(newSym.name);
-
-		// now that we've exited the block procedure, the nested procedure is whatever it previously was
-		nested = newSym.nested;
+		block();
 
 		emit(OPR, 0, 0);
 
@@ -211,7 +202,7 @@ void block(char * nested) {
 	// incoming 4 + number of variables
 	emit(INC, 0, 4 + varCount);
 
-	statement(nested);
+	statement();
 }
 
 void statement(char * nested) {
@@ -254,14 +245,8 @@ void statement(char * nested) {
 		else if (sym->kind != 3)
 			checkError("", 15);
 
-		// if procedures are the same level (other than 0), can't be called
-		// if a procedure's parent doesn't match the current procedure, can't be called
-		if (!(sym->level == 0 && level == 0) || strcmp(sym->nested, nested) != 0)
-			checkError("", 30);
-
-		// SEE IF CALLEE IS IN "NESTED" CHAIN, IF NOT, RETURN ERROR
-
-		if (sym->level < level)
+		// check to see if the call is "legal" according to nested shit
+		if (level - sym->level < 0)
 			checkError("", 30);
 
 		emit(CAL, level - sym->level, sym->addr);
@@ -527,11 +512,13 @@ void getToken() {
 }
 
 // retrieve symbol from symbol table
+// start from the most recent and work your way back
+// so that you access the most local variable first
 Symbol * getSymbol(char * tokenName) {
 
 	int i;
 
-	for (i = 0; i < symPointer; i++) {
+	for (i = symPointer - 1; i >= 0; i--) {
 
 		// if a match is found, return pointer to symbol table locatoin
 		if (strcmp(tokenName, symbol_table[i].name) == 0)
@@ -544,15 +531,10 @@ Symbol * getSymbol(char * tokenName) {
 }
 
 void putSymbol(Symbol sym) {
-	
-	if (getSymbol(sym.name) == NULL) {
-		symbol_table[symPointer] = sym;
-		symPointer++;
-	}
 
-	// can't have two identifiers with the same name
-	else
-		checkError("", 28);
+	symbol_table[symPointer] = sym;
+	symPointer++;
+
 }
 
 void emit(int op, int l, int m) {
@@ -674,14 +656,11 @@ char * chuckError(int error) {
 	case 27:
 		return "read, write must be followed by identifier or number.\n";
 
-	case 28:
-		return "Can't have two identifiers with the same name.\n";
-
 	case 29:
 		return "Can't perform \"read\" on a procedure.\n";
 
 	case 30:
-		return "Can't call a procedure from that level.";
+		return "Can't call a procedure from that level.\n";
 
 	default:
 		return "";
